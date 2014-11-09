@@ -17,12 +17,13 @@
 package org.terasology.musicdirector;
 
 import org.terasology.asset.AssetUri;
+import org.terasology.entitySystem.Component;
 
 /**
  * Triggers playing of music assets
  * @author Martin Steiger
  */
-public interface MusicTrigger {
+public interface MusicTriggerComponent extends Component {
 
     /**
      * @return

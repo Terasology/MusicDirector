@@ -27,6 +27,6 @@ public interface MusicRegistrator {
     /**
      * @return
      */
-    Collection<? extends MusicTrigger> getTriggers();
+    Collection<? extends MusicTriggerComponent> getTriggers();
 
 }

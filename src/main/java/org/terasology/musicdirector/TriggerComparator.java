@@ -22,10 +22,10 @@ import java.util.Comparator;
  * Compares two triggers based on their priority values
  * @author Martin Steiger
  */
-class TriggerComparator implements Comparator<MusicTrigger> {
+class TriggerComparator implements Comparator<MusicTriggerComponent> {
 
     @Override
-    public int compare(MusicTrigger o1, MusicTrigger o2) {
+    public int compare(MusicTriggerComponent o1, MusicTriggerComponent o2) {
         MusicPriority prio1 = o1.getPriority();
         MusicPriority prio2 = o2.getPriority();
         return Integer.compare(prio1.getValue(), prio2.getValue());

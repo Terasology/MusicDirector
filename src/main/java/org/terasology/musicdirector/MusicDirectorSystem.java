@@ -22,17 +22,20 @@ import java.util.Queue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.terasology.asset.AssetManager;
 import org.terasology.asset.AssetUri;
 import org.terasology.asset.Assets;
 import org.terasology.audio.AudioEndListener;
 import org.terasology.audio.AudioManager;
 import org.terasology.audio.StreamingSound;
-import org.terasology.engine.module.ClassFinder;
 import org.terasology.entitySystem.entity.EntityRef;
+import org.terasology.entitySystem.entity.lifecycleEvents.OnActivatedComponent;
 import org.terasology.entitySystem.event.ReceiveEvent;
 import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterSystem;
+import org.terasology.logic.autoCreate.AutoCreateComponent;
 import org.terasology.logic.console.Command;
+import org.terasology.module.ModuleEnvironment;
 import org.terasology.registry.In;
 import org.terasology.world.time.WorldTimeEvent;
 
@@ -53,44 +56,39 @@ public class MusicDirectorSystem extends BaseComponentSystem {
     private AudioManager audioManager;
 
     @In
-    private ClassFinder classFinder;
+    private AssetManager assetManager;
 
     private StreamingSound current;
 
-    private final Collection<MusicTrigger> triggers = Sets.newLinkedHashSet();
+    private final Collection<MusicTriggerComponent> triggers = Sets.newLinkedHashSet();
 
-    private final Queue<MusicTrigger> playList = new PriorityQueue<MusicTrigger>(new TriggerComparator());
+    private final Queue<MusicTriggerComponent> playList = new PriorityQueue<MusicTriggerComponent>(new TriggerComparator());
 
     private final Queue<AssetUri> history = Lists.newLinkedList();
 
-    @Override
-    public void initialise() {
-        super.initialise();
+    @ReceiveEvent(components = TimedMusicTriggerComponent.class)
+    public void onRegisterAsset(OnActivatedComponent event, EntityRef entity) {
 
-        for (Class<? extends MusicRegistrator> registratorClazz : classFinder.getSubtypesOf(MusicRegistrator.class)) {
-            try {
-                MusicRegistrator reg = registratorClazz.newInstance();
-                triggers.addAll(reg.getTriggers());
-            }
-            catch (Exception e) {
-                logger.error("Could not create an instance of {} using its default constructor", registratorClazz.getName());
-            }
-        }
+        MusicTriggerComponent trigger = entity.getComponent(TimedMusicTriggerComponent.class);
+
+        logger.info("Registered music asset {}", trigger.getAssetUri());
+        triggers.add(trigger);
     }
 
     @ReceiveEvent
     public void onTimeEvent(WorldTimeEvent event, EntityRef worldEntity) {
 
-        for (MusicTrigger trigger : triggers) {
+        for (MusicTriggerComponent trigger : triggers) {
             if (trigger.isTriggered()) {
                 if (!playList.contains(trigger)) {
+                    logger.info("Music trigger {} activated", trigger);
                     playList.add(trigger);
                 }
             }
         }
 
         if (current == null && !playList.isEmpty()) {
-            MusicTrigger best = playList.poll();
+            MusicTriggerComponent best = playList.poll();
 
             AssetUri uri = best.getAssetUri();
             current = Assets.get(uri, StreamingSound.class);
@@ -115,11 +113,13 @@ public class MusicDirectorSystem extends BaseComponentSystem {
     public String showPlaylist() {
         StringBuilder sb = new StringBuilder();
         int index = 1;
-        for (MusicTrigger entry : playList) {
+        for (MusicTriggerComponent entry : playList) {
             sb.append(index + " - " + entry.getAssetUri());
             sb.append("\n");
             index++;
         }
+
+        sb.append(playList.size() + " elements in the queue\n");
 
         return sb.toString();
     }

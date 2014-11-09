@@ -30,25 +30,27 @@ import com.google.common.math.LongMath;
  * TODO Type description
  * @author Martin Steiger
  */
-public class TimedMusicTrigger implements MusicTrigger {
+public class TimedMusicTriggerComponent implements MusicTriggerComponent {
 
-    private final float dailyStart;
-    private final float dailyEnd;
+    private float dailyStart;
+    private float dailyEnd;
 
-    private final WorldTime worldTime;
-    private final AssetUri asset;
+    private AssetUri asset;
 
-    public TimedMusicTrigger(AssetUri uri, float dailyStart, float dailyEnd) {
+    public TimedMusicTriggerComponent() {
+    }
+
+    public TimedMusicTriggerComponent(String uri, float dailyStart, float dailyEnd) {
         this.dailyStart = dailyStart;
         this.dailyEnd = dailyEnd;
-        this.asset = uri;
-
-        WorldProvider worldProvider = CoreRegistry.get(WorldProvider.class);
-        worldTime = worldProvider.getTime();
+        this.asset = new AssetUri(uri);
     }
 
     @Override
     public boolean isTriggered() {
+
+        WorldProvider worldProvider = CoreRegistry.get(WorldProvider.class);
+        WorldTime worldTime = worldProvider.getTime();
 
         long time = worldTime.getMilliseconds();
         long timeInDay = LongMath.mod(time, WorldTime.DAY_LENGTH);
@@ -71,6 +73,6 @@ public class TimedMusicTrigger implements MusicTrigger {
 
     @Override
     public String toString() {
-        return String.format("MusicTrigger [%2f..%2f -> %s]" + dailyStart, dailyEnd, asset);
+        return String.format("MusicTrigger [%2f..%2f -> %s]", dailyStart, dailyEnd, asset);
     }
 }
