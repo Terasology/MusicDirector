@@ -1,18 +1,9 @@
 {
     "id" : "MusicDirector",
-    "version" : "0.1.0",
+    "version" : "0.2.0",
     "author" : "msteiger",
     "displayName" : "MusicDirector",
     "description" : "A module that controls music assets from other modules",
-    "dependencies" : [
-        {
-            "id" : "ChrisVolume1OST",
-            "minVersion" : "0.1.0"
-        },
-        {
-            "id" : "LegacyMusic",
-            "minVersion" : "0.1.0"
-        }
-    ],
+    "dependencies" : [],
     "isServerSideOnly" : false
 }

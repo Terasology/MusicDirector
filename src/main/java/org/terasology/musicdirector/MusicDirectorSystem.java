@@ -16,22 +16,32 @@
 
 package org.terasology.musicdirector;
 
-import javax.vecmath.Vector3f;
+import java.util.Collection;
+import java.util.PriorityQueue;
+import java.util.Queue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.terasology.asset.AssetUri;
 import org.terasology.asset.Assets;
+import org.terasology.audio.AudioEndListener;
 import org.terasology.audio.AudioManager;
+import org.terasology.audio.StreamingSound;
+import org.terasology.engine.module.ClassFinder;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.entitySystem.event.ReceiveEvent;
 import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterSystem;
-import org.terasology.logic.players.LocalPlayer;
+import org.terasology.logic.console.Command;
 import org.terasology.registry.In;
 import org.terasology.world.time.WorldTimeEvent;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
 /**
- * Play different music assets based on world time
+ * Play different music assets through triggers that are
+ * provided by {@link MusicRegistrator}s.
  * @author Martin Steiger
  */
 @RegisterSystem
@@ -40,95 +50,77 @@ public class MusicDirectorSystem extends BaseComponentSystem {
     private static final Logger logger = LoggerFactory.getLogger(MusicDirectorSystem.class);
 
     @In
-    private LocalPlayer localPlayer;
+    private AudioManager audioManager;
 
     @In
-    private AudioManager audioManager;
+    private ClassFinder classFinder;
+
+    private StreamingSound current;
+
+    private final Collection<MusicTrigger> triggers = Sets.newLinkedHashSet();
+
+    private final Queue<MusicTrigger> playList = new PriorityQueue<MusicTrigger>(new TriggerComparator());
+
+    private final Queue<AssetUri> history = Lists.newLinkedList();
+
+    @Override
+    public void initialise() {
+        super.initialise();
+
+        for (Class<? extends MusicRegistrator> registratorClazz : classFinder.getSubtypesOf(MusicRegistrator.class)) {
+            try {
+                MusicRegistrator reg = registratorClazz.newInstance();
+                triggers.addAll(reg.getTriggers());
+            }
+            catch (Exception e) {
+                logger.error("Could not create an instance of {} using its default constructor", registratorClazz.getName());
+            }
+        }
+    }
 
     @ReceiveEvent
     public void onTimeEvent(WorldTimeEvent event, EntityRef worldEntity) {
 
-        // SUNRISE
-        if (event.matchesDaily(0.35f)) {
-            logger.debug("Playing sunrise theme..");
-
-            if (getPlayerPosition().y < 50) {
-                audioManager.playMusic(Assets.getMusic("LegacyMusic:SpacialWinds"));
-            } else if (getPlayerPosition().y > 175) {
-                audioManager.playMusic(Assets.getMusic("ChrisVolume1OST:Heaven"));
-            } else {
-                audioManager.playMusic(Assets.getMusic("LegacyMusic:Sunrise"));
+        for (MusicTrigger trigger : triggers) {
+            if (trigger.isTriggered()) {
+                if (!playList.contains(trigger)) {
+                    playList.add(trigger);
+                }
             }
         }
 
-        // AFTERNOON
-        if (event.matchesDaily(0.50f)) {
-            logger.debug("Playing afternoon theme..");
+        if (current == null && !playList.isEmpty()) {
+            MusicTrigger best = playList.poll();
 
-            if (getPlayerPosition().y < 50) {
-                audioManager.playMusic(Assets.getMusic("ChrisVolume1OST:DwarfForge"));
-            } else if (getPlayerPosition().y > 175) {
-                audioManager.playMusic(Assets.getMusic("LegacyMusic:SpaceExplorers"));
+            AssetUri uri = best.getAssetUri();
+            current = Assets.get(uri, StreamingSound.class);
+
+            if (current != null) {
+                logger.info("Starting to play {}", uri);
+                audioManager.playMusic(current, new AudioEndListener() {
+
+                    @Override
+                    public void onAudioEnd() {
+                        history.add(uri);
+                        current = null;
+                    }
+                });
             } else {
-                audioManager.playMusic(Assets.getMusic("LegacyMusic:Afternoon"));
+                logger.warn("Asset {} could not be retrieved", uri);
             }
         }
-
-        // SUNSET
-        if (event.matchesDaily(0.65f)) {
-            logger.debug("Playing sunset theme..");
-
-            if (getPlayerPosition().y < 50) {
-                audioManager.playMusic(Assets.getMusic("ChrisVolume1OST:OrcFortress"));
-            } else if (getPlayerPosition().y > 175) {
-                audioManager.playMusic(Assets.getMusic("ChrisVolume1OST:PeacefulWorld"));
-            } else {
-                audioManager.playMusic(Assets.getMusic("LegacyMusic:Sunset"));
-            }
-        }
-
-        // NIGHT
-        if (event.matchesDaily(0.85f)) {
-            logger.debug("Playing night theme..");
-
-            if (getPlayerPosition().y < 50) {
-                audioManager.playMusic(Assets.getMusic("LegacyMusic:CreepyCaves"));
-            } else if (getPlayerPosition().y > 175) {
-                audioManager.playMusic(Assets.getMusic("ChrisVolume1OST:ShootingStars"));
-            } else {
-                audioManager.playMusic(Assets.getMusic("LegacyMusic:Dimlight"));
-            }
-        }
-
-        // NIGHT
-        if (event.matchesDaily(0.00f)) {
-            logger.debug("Playing night theme..");
-
-            if (getPlayerPosition().y < 50) {
-                audioManager.playMusic(Assets.getMusic("LegacyMusic:CreepyCaves"));
-            } else if (getPlayerPosition().y > 175) {
-                audioManager.playMusic(Assets.getMusic("ChrisVolume1OST:NightTheme"));
-            } else {
-                audioManager.playMusic(Assets.getMusic("LegacyMusic:OtherSide"));
-            }
-        }
-
-        // BEFORE SUNRISE
-        if (event.matchesDaily(0.15f)) {
-            logger.debug("Playing before sunrise theme..");
-
-            if (getPlayerPosition().y < 50) {
-                audioManager.playMusic(Assets.getMusic("LegacyMusic:CreepyCaves"));
-            } else if (getPlayerPosition().y > 175) {
-                audioManager.playMusic(Assets.getMusic("ChrisVolume1OST:Heroes"));
-            } else {
-                audioManager.playMusic(Assets.getMusic("LegacyMusic:Resurface"));
-            }
-        }
-
     }
 
-    private Vector3f getPlayerPosition() {
-        return localPlayer.getPosition();
+    @Command(shortDescription = "Show current playlist")
+    public String showPlaylist() {
+        StringBuilder sb = new StringBuilder();
+        int index = 1;
+        for (MusicTrigger entry : playList) {
+            sb.append(index + " - " + entry.getAssetUri());
+            sb.append("\n");
+            index++;
+        }
+
+        return sb.toString();
     }
 }

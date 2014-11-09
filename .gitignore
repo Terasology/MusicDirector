@@ -9,5 +9,6 @@ build.gradle
 .classpath
 .project
 .settings
+.eclipse-pmd
 bin/
 build/
