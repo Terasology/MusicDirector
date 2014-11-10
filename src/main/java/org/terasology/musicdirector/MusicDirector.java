@@ -16,28 +16,15 @@
 
 package org.terasology.musicdirector;
 
-import org.terasology.asset.AssetUri;
-import org.terasology.entitySystem.Component;
-
 /**
- * Triggers playing of music assets
+ * TODO Type description
  * @author Martin Steiger
  */
-public interface MusicTriggerComponent extends Component {
+public interface MusicDirector {
 
     /**
-     * @return
+     * @param trigger
      */
-    boolean isTriggered();
-
-    /**
-     * @return
-     */
-    AssetUri getAssetUri();
-
-    /**
-     * @return
-     */
-    MusicPriority getPriority();
+    void register(MusicTrigger trigger);
 
 }

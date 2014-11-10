@@ -16,17 +16,25 @@
 
 package org.terasology.musicdirector;
 
-import java.util.Collection;
-
 /**
- * Registers triggers at a central managing instance
+ * Triggers playing of music assets
  * @author Martin Steiger
  */
-public interface MusicRegistrator {
+public interface MusicTrigger {
 
     /**
      * @return
      */
-    Collection<? extends MusicTriggerComponent> getTriggers();
+    boolean isTriggered();
+
+    /**
+     * @return
+     */
+    String getAssetUri();
+
+    /**
+     * @return
+     */
+    MusicPriority getPriority();
 
 }

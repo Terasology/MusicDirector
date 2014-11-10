@@ -16,111 +16,41 @@
 
 package org.terasology.musicdirector;
 
-import java.util.Collection;
-import java.util.PriorityQueue;
-import java.util.Queue;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.terasology.asset.AssetManager;
-import org.terasology.asset.AssetUri;
-import org.terasology.asset.Assets;
-import org.terasology.audio.AudioEndListener;
-import org.terasology.audio.AudioManager;
-import org.terasology.audio.StreamingSound;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.entitySystem.entity.lifecycleEvents.OnActivatedComponent;
 import org.terasology.entitySystem.event.ReceiveEvent;
 import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterSystem;
-import org.terasology.logic.autoCreate.AutoCreateComponent;
-import org.terasology.logic.console.Command;
-import org.terasology.module.ModuleEnvironment;
-import org.terasology.registry.In;
-import org.terasology.world.time.WorldTimeEvent;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import org.terasology.registry.CoreRegistry;
 
 /**
  * Play different music assets through triggers that are
- * provided by {@link MusicRegistrator}s.
+ * provided by (auto-created) entities with
+ * {@link TimedMusicTrigger} components.
  * @author Martin Steiger
  */
 @RegisterSystem
 public class MusicDirectorSystem extends BaseComponentSystem {
 
-    private static final Logger logger = LoggerFactory.getLogger(MusicDirectorSystem.class);
+    private MusicDirector manager;
 
-    @In
-    private AudioManager audioManager;
+    @Override
+    public void initialise() {
+        super.initialise();
 
-    @In
-    private AssetManager assetManager;
-
-    private StreamingSound current;
-
-    private final Collection<MusicTriggerComponent> triggers = Sets.newLinkedHashSet();
-
-    private final Queue<MusicTriggerComponent> playList = new PriorityQueue<MusicTriggerComponent>(new TriggerComparator());
-
-    private final Queue<AssetUri> history = Lists.newLinkedList();
+        // msteiger: I think we cannot rely on the @In annotation, because
+        //           MusicDirector could be created after this class
+        manager = CoreRegistry.get(MusicDirector.class);
+    }
 
     @ReceiveEvent(components = TimedMusicTriggerComponent.class)
     public void onRegisterAsset(OnActivatedComponent event, EntityRef entity) {
 
-        MusicTriggerComponent trigger = entity.getComponent(TimedMusicTriggerComponent.class);
+        MusicTrigger trigger = entity.getComponent(TimedMusicTriggerComponent.class);
 
-        logger.info("Registered music asset {}", trigger.getAssetUri());
-        triggers.add(trigger);
+//        DisplayNameComponent displayName = entity.getComponent(DisplayNameComponent.class);
+
+        manager.register(trigger);
     }
 
-    @ReceiveEvent
-    public void onTimeEvent(WorldTimeEvent event, EntityRef worldEntity) {
-
-        for (MusicTriggerComponent trigger : triggers) {
-            if (trigger.isTriggered()) {
-                if (!playList.contains(trigger)) {
-                    logger.info("Music trigger {} activated", trigger);
-                    playList.add(trigger);
-                }
-            }
-        }
-
-        if (current == null && !playList.isEmpty()) {
-            MusicTriggerComponent best = playList.poll();
-
-            AssetUri uri = best.getAssetUri();
-            current = Assets.get(uri, StreamingSound.class);
-
-            if (current != null) {
-                logger.info("Starting to play {}", uri);
-                audioManager.playMusic(current, new AudioEndListener() {
-
-                    @Override
-                    public void onAudioEnd() {
-                        history.add(uri);
-                        current = null;
-                    }
-                });
-            } else {
-                logger.warn("Asset {} could not be retrieved", uri);
-            }
-        }
-    }
-
-    @Command(shortDescription = "Show current playlist")
-    public String showPlaylist() {
-        StringBuilder sb = new StringBuilder();
-        int index = 1;
-        for (MusicTriggerComponent entry : playList) {
-            sb.append(index + " - " + entry.getAssetUri());
-            sb.append("\n");
-            index++;
-        }
-
-        sb.append(playList.size() + " elements in the queue\n");
-
-        return sb.toString();
-    }
 }

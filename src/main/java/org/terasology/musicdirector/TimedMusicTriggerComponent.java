@@ -18,7 +18,7 @@ package org.terasology.musicdirector;
 
 import java.math.RoundingMode;
 
-import org.terasology.asset.AssetUri;
+import org.terasology.entitySystem.Component;
 import org.terasology.registry.CoreRegistry;
 import org.terasology.world.WorldProvider;
 import org.terasology.world.time.WorldTime;
@@ -27,23 +27,26 @@ import com.google.common.math.DoubleMath;
 import com.google.common.math.LongMath;
 
 /**
- * TODO Type description
+ * A music trigger that is based on a daily time interval.
  * @author Martin Steiger
  */
-public class TimedMusicTriggerComponent implements MusicTriggerComponent {
+public final class TimedMusicTriggerComponent implements MusicTrigger,  Component  {
 
     private float dailyStart;
     private float dailyEnd;
 
-    private AssetUri asset;
+    private String assetUri;
 
+    /**
+     * Don't use! For serialization only!
+     */
     public TimedMusicTriggerComponent() {
     }
 
     public TimedMusicTriggerComponent(String uri, float dailyStart, float dailyEnd) {
         this.dailyStart = dailyStart;
         this.dailyEnd = dailyEnd;
-        this.asset = new AssetUri(uri);
+        this.assetUri = uri;
     }
 
     @Override
@@ -58,12 +61,18 @@ public class TimedMusicTriggerComponent implements MusicTriggerComponent {
         long startInMs = DoubleMath.roundToLong(dailyStart * WorldTime.DAY_LENGTH, RoundingMode.HALF_UP);
         long endInMs = DoubleMath.roundToLong(dailyEnd * WorldTime.DAY_LENGTH, RoundingMode.HALF_UP);
 
-        return timeInDay > startInMs && timeInDay < endInMs;
+        if (startInMs < endInMs) {
+            // -----[xxxxxxxxxx]------
+            return timeInDay >= startInMs && timeInDay <= endInMs;
+        } else {
+            // xxxxx]----------[xxxxxx
+            return timeInDay >= startInMs || timeInDay <= endInMs;
+        }
     }
 
     @Override
-    public AssetUri getAssetUri() {
-        return asset;
+    public String getAssetUri() {
+        return assetUri;
     }
 
     @Override
@@ -73,6 +82,6 @@ public class TimedMusicTriggerComponent implements MusicTriggerComponent {
 
     @Override
     public String toString() {
-        return String.format("MusicTrigger [%2f..%2f -> %s]", dailyStart, dailyEnd, asset);
+        return String.format("MusicTrigger [%.2f...%.2f -> '%s']", dailyStart, dailyEnd, assetUri);
     }
 }
