@@ -17,7 +17,7 @@
 package org.terasology.musicdirector;
 
 /**
- * TODO Type description
+ * Orchestrates music assets
  * @author Martin Steiger
  */
 public interface MusicDirector {

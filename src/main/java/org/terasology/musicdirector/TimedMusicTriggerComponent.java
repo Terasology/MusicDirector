@@ -17,6 +17,7 @@
 package org.terasology.musicdirector;
 
 import java.math.RoundingMode;
+import java.util.List;
 
 import org.terasology.entitySystem.Component;
 import org.terasology.registry.CoreRegistry;
@@ -41,12 +42,6 @@ public final class TimedMusicTriggerComponent implements MusicTrigger,  Componen
      * Don't use! For serialization only!
      */
     public TimedMusicTriggerComponent() {
-    }
-
-    public TimedMusicTriggerComponent(String uri, float dailyStart, float dailyEnd) {
-        this.dailyStart = dailyStart;
-        this.dailyEnd = dailyEnd;
-        this.assetUri = uri;
     }
 
     @Override
