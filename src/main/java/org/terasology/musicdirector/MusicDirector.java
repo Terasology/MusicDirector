@@ -22,9 +22,8 @@ package org.terasology.musicdirector;
  */
 public interface MusicDirector {
 
-    /**
-     * @param trigger
-     */
-    void register(MusicTrigger trigger);
+    void enqueue(String assetUri, MusicPriority prio);
+
+    void dequeue(String assetUri);
 
 }

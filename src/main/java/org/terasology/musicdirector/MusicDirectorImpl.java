@@ -17,6 +17,7 @@
 package org.terasology.musicdirector;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
@@ -51,11 +52,11 @@ public class MusicDirectorImpl extends BaseComponentSystem implements MusicDirec
 
     private static final Logger logger = LoggerFactory.getLogger(MusicDirectorImpl.class);
 
-    private final Collection<MusicTrigger> triggers = Sets.newLinkedHashSet();
+    private static final TriggerComparator COMP = new TriggerComparator();
 
-    private final Queue<MusicTrigger> playList = new PriorityQueue<MusicTrigger>(new TriggerComparator());
+    private final Queue<PlaylistEntry> playList = new PriorityQueue<>(COMP);
 
-    private final Queue<String> history = Lists.newLinkedList();
+    private final Queue<PlaylistEntry> history = Lists.newLinkedList();
 
     @In
     private AudioManager audioManager;
@@ -63,54 +64,86 @@ public class MusicDirectorImpl extends BaseComponentSystem implements MusicDirec
     @In
     private AssetManager assetManager;
 
-    private StreamingSound current;
+    private PlaylistEntry currentEntry;
+    private StreamingSound currentSound;
 
-    @ReceiveEvent
-    public void onTimeEvent(WorldTimeEvent event, EntityRef worldEntity) {
+    @Override
+    public void enqueue(String assetUri, MusicPriority priority) {
+
+        PlaylistEntry prev = find(assetUri);
+
+        PlaylistEntry entry = new PlaylistEntry(assetUri, priority);
+
+        if (prev != null) {
+            if (!prev.equals(entry)) {
+                playList.remove(prev);
+                playList.add(entry);
+                logger.info("Updated {} with {}", prev, entry);
+            } else {
+                // already exists
+                return;
+            }
+        } else {
+            logger.info("Enqueued {}", assetUri);
+            playList.add(entry);
+        }
 
         checkTriggers();
     }
 
     @Override
-    public void register(MusicTrigger trigger) {
-        logger.info("Registered music asset {}", trigger.getAssetUri());
-        triggers.add(trigger);
-        checkTriggers();
+    public void dequeue(String assetUri) {
+        PlaylistEntry entry = find(assetUri);
+        if (entry != null) {
+            logger.info("Removed {}", entry);
+            playList.remove();
+        }
+    }
+
+    private PlaylistEntry find(String assetUri) {
+        for (PlaylistEntry entry : playList) {
+            if (assetUri.equalsIgnoreCase(entry.getAssetUri())) {
+                return entry;
+            }
+        }
+
+        return null;
     }
 
     private void checkTriggers() {
 
-        for (MusicTrigger trigger : triggers) {
-            if (trigger.isTriggered()) {
-                if (!playList.contains(trigger)) {
-                    logger.info("Music trigger {} activated", trigger);
-                    playList.add(trigger);
-                }
-            } else {
-                playList.remove(trigger);
-            }
+        if (playList.isEmpty()) {
+            return;
         }
 
-        if (current == null && !playList.isEmpty()) {
-            MusicTrigger best = playList.peek();
+        PlaylistEntry nextEntry = playList.peek();
 
-            String uri = best.getAssetUri();
-            current = Assets.getMusic(uri);
+        if (currentEntry == null || COMP.compare(nextEntry,  currentEntry) > 0) {
 
-            if (current != null) {
+            String uri = nextEntry.getAssetUri();
+            StreamingSound sound = Assets.getMusic(uri);
+
+            if (sound != null) {
+                if (currentSound != null) {
+//                    currentSound.stop();
+                }
+
                 logger.info("Starting to play '{}'", uri);
-                audioManager.playMusic(current, new AudioEndListener() {
+                audioManager.playMusic(sound, new AudioEndListener() {
 
                     @Override
                     public void onAudioEnd() {
                         logger.info("Song ended");
-                        playList.poll();    // remove head
-                        history.add(uri);
-                        current = null;
+                        playList.remove(currentEntry);    // remove head
+                        history.add(currentEntry);
+                        currentEntry = null;
+                        currentSound = null;
+                        checkTriggers();
                     }
                 });
             } else {
                 logger.warn("Asset {} could not be retrieved", uri);
+                checkTriggers();
             }
         }
     }
@@ -122,8 +155,19 @@ public class MusicDirectorImpl extends BaseComponentSystem implements MusicDirec
         sb.append("In the queue: ");
         sb.append(playList.toString());
         sb.append("\n");
-        sb.append(current != null ? "Currently playing '" + current.getURI() + "'" : "Not playing");
+        sb.append(currentEntry != null ? "Currently playing '" + currentEntry.getAssetUri() + "'" : "Not playing");
 
         return sb.toString();
+    }
+
+    private static class TriggerComparator implements Comparator<PlaylistEntry> {
+
+        @Override
+        public int compare(PlaylistEntry o1, PlaylistEntry o2) {
+            MusicPriority prio1 = o1.getPriority();
+            MusicPriority prio2 = o2.getPriority();
+            return Integer.compare(prio1.getValue(), prio2.getValue());
+        }
+
     }
 }
