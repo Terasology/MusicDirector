@@ -34,6 +34,11 @@ final class PlaylistEntry {
     }
 
     @Override
+    public String toString() {
+        return "PlaylistEntry ['" + assetUri + "' at " + priority + " priority]";
+    }
+
+    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;

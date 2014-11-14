@@ -37,6 +37,7 @@ import org.terasology.registry.In;
 import org.terasology.registry.Share;
 import org.terasology.world.time.WorldTimeEvent;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -95,8 +96,8 @@ public class MusicDirectorImpl extends BaseComponentSystem implements MusicDirec
     public void dequeue(String assetUri) {
         PlaylistEntry entry = find(assetUri);
         if (entry != null) {
-            logger.info("Removed {}", entry);
-            playList.remove();
+            playList.remove(entry);
+            logger.info("Removed {}", entry.getAssetUri());
         }
     }
 
@@ -128,12 +129,15 @@ public class MusicDirectorImpl extends BaseComponentSystem implements MusicDirec
 //                    currentSound.stop();
                 }
 
+                currentSound = sound;
+                currentEntry = nextEntry;
+
                 logger.info("Starting to play '{}'", uri);
                 audioManager.playMusic(sound, new AudioEndListener() {
 
                     @Override
                     public void onAudioEnd() {
-                        logger.info("Song ended");
+                        logger.info("Song '{}' ended", currentEntry.getAssetUri());
                         playList.remove(currentEntry);    // remove head
                         history.add(currentEntry);
                         currentEntry = null;
@@ -143,6 +147,7 @@ public class MusicDirectorImpl extends BaseComponentSystem implements MusicDirec
                 });
             } else {
                 logger.warn("Asset {} could not be retrieved", uri);
+                playList.remove();
                 checkTriggers();
             }
         }
@@ -152,8 +157,8 @@ public class MusicDirectorImpl extends BaseComponentSystem implements MusicDirec
     public String showPlaylist() {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("In the queue: ");
-        sb.append(playList.toString());
+        sb.append("In the queue:\n");
+        Joiner.on('\n').appendTo(sb, playList);
         sb.append("\n");
         sb.append(currentEntry != null ? "Currently playing '" + currentEntry.getAssetUri() + "'" : "Not playing");
 

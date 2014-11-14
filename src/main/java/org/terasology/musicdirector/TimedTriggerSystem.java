@@ -29,6 +29,7 @@ import org.terasology.audio.AudioEndListener;
 import org.terasology.audio.AudioManager;
 import org.terasology.audio.StreamingSound;
 import org.terasology.entitySystem.entity.EntityRef;
+import org.terasology.entitySystem.entity.lifecycleEvents.BeforeDeactivateComponent;
 import org.terasology.entitySystem.entity.lifecycleEvents.OnActivatedComponent;
 import org.terasology.entitySystem.event.ReceiveEvent;
 import org.terasology.entitySystem.systems.BaseComponentSystem;
@@ -86,6 +87,16 @@ public class TimedTriggerSystem extends BaseComponentSystem {
 
         triggers.add(trigger);
     }
+
+
+    @ReceiveEvent(components = TimedMusicTriggerComponent.class)
+    public void onUnregisterAsset(BeforeDeactivateComponent event, EntityRef entity) {
+
+        TimedMusicTriggerComponent trigger = entity.getComponent(TimedMusicTriggerComponent.class);
+
+        triggers.remove(trigger);
+    }
+
 
     @ReceiveEvent
     public void onTimeEvent(WorldTimeEvent event, EntityRef worldEntity) {
