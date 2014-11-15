@@ -49,7 +49,8 @@ public class MusicDirectorImpl extends BaseComponentSystem implements MusicDirec
 
     private static final TriggerComparator COMP = new TriggerComparator();
 
-    private final Queue<PlaylistEntry> playList = new PriorityQueue<>(COMP);
+    // JAVA8: remove initial capacity and use the constructor that uses default cap
+    private final Queue<PlaylistEntry> playList = new PriorityQueue<>(11, COMP);
 
     private final Queue<PlaylistEntry> history = Lists.newLinkedList();
 
