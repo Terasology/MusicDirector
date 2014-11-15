@@ -18,45 +18,32 @@ package org.terasology.musicdirector;
 
 import java.math.RoundingMode;
 import java.util.Collection;
-import java.util.PriorityQueue;
-import java.util.Queue;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.terasology.asset.AssetManager;
-import org.terasology.asset.Assets;
-import org.terasology.audio.AudioEndListener;
-import org.terasology.audio.AudioManager;
-import org.terasology.audio.StreamingSound;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.entitySystem.entity.lifecycleEvents.BeforeDeactivateComponent;
 import org.terasology.entitySystem.entity.lifecycleEvents.OnActivatedComponent;
 import org.terasology.entitySystem.event.ReceiveEvent;
 import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterSystem;
-import org.terasology.logic.console.Command;
 import org.terasology.registry.CoreRegistry;
 import org.terasology.registry.In;
-import org.terasology.registry.Share;
 import org.terasology.world.WorldProvider;
 import org.terasology.world.time.WorldTime;
 import org.terasology.world.time.WorldTimeEvent;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.math.DoubleMath;
 import com.google.common.math.LongMath;
 
 /**
- * Play different music assets through triggers that are
+ * Enqueues triggers that are
  * provided by (auto-created) entities with
- * {@link MusicTrigger} components.
+ * {@link TimedMusicTriggerComponent} components.
  * @author Martin Steiger
  */
 @RegisterSystem
 public class TimedTriggerSystem extends BaseComponentSystem {
-
-    private static final Logger logger = LoggerFactory.getLogger(TimedTriggerSystem.class);
 
     private final Collection<TimedMusicTriggerComponent> triggers = Sets.newLinkedHashSet();
 

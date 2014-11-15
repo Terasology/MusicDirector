@@ -16,7 +16,6 @@
 
 package org.terasology.musicdirector;
 
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -28,23 +27,18 @@ import org.terasology.asset.Assets;
 import org.terasology.audio.AudioEndListener;
 import org.terasology.audio.AudioManager;
 import org.terasology.audio.StreamingSound;
-import org.terasology.entitySystem.entity.EntityRef;
-import org.terasology.entitySystem.event.ReceiveEvent;
 import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterSystem;
 import org.terasology.logic.console.Command;
 import org.terasology.registry.In;
 import org.terasology.registry.Share;
-import org.terasology.world.time.WorldTimeEvent;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
- * Play different music assets through triggers that are
- * provided by (auto-created) entities with
- * {@link MusicTrigger} components.
+ * Play different music assets that are enqueued
+ * according to their priority.
  * @author Martin Steiger
  */
 @RegisterSystem
