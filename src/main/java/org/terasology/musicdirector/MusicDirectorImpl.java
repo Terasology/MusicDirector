@@ -29,7 +29,7 @@ import org.terasology.audio.AudioManager;
 import org.terasology.audio.StreamingSound;
 import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterSystem;
-import org.terasology.logic.console.Command;
+import org.terasology.logic.console.commands.referenced.CommandDefinition;
 import org.terasology.registry.In;
 import org.terasology.registry.Share;
 
@@ -148,7 +148,7 @@ public class MusicDirectorImpl extends BaseComponentSystem implements MusicDirec
         }
     }
 
-    @Command(shortDescription = "Show current playlist")
+    @CommandDefinition(shortDescription = "Show current playlist")
     public String showPlaylist() {
         StringBuilder sb = new StringBuilder();
 
