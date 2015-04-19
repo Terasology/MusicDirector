@@ -18,7 +18,6 @@ package org.terasology.musicdirector;
 
 /**
  * The priority at which music assets get played.
- * @author Martin Steiger
  */
 public enum MusicPriority {
 

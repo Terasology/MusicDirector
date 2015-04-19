@@ -40,7 +40,6 @@ import com.google.common.math.LongMath;
  * Enqueues triggers that are
  * provided by (auto-created) entities with
  * {@link TimedMusicTriggerComponent} components.
- * @author Martin Steiger
  */
 @RegisterSystem
 public class TimedTriggerSystem extends BaseComponentSystem {

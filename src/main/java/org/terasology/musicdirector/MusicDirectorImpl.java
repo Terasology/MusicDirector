@@ -39,7 +39,6 @@ import com.google.common.collect.Lists;
 /**
  * Play different music assets that are enqueued
  * according to their priority.
- * @author Martin Steiger
  */
 @RegisterSystem
 @Share(MusicDirector.class)

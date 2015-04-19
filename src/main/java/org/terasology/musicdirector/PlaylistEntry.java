@@ -16,6 +16,9 @@
 
 package org.terasology.musicdirector;
 
+/**
+ * A playlist entry - identified by an asset uri.
+ */
 final class PlaylistEntry {
 
     private final String assetUri;

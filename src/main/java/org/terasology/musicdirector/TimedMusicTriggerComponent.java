@@ -20,7 +20,6 @@ import org.terasology.entitySystem.Component;
 
 /**
  * A music trigger that is based on a daily time interval.
- * @author Martin Steiger
  */
 public final class TimedMusicTriggerComponent implements Component  {
 

@@ -18,7 +18,6 @@ package org.terasology.musicdirector;
 
 /**
  * Orchestrates music assets
- * @author Martin Steiger
  */
 public interface MusicDirector {
 
