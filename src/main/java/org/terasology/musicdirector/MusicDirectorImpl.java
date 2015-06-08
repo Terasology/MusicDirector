@@ -22,7 +22,6 @@ import java.util.Queue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.asset.AssetManager;
 import org.terasology.asset.Assets;
 import org.terasology.audio.AudioEndListener;
 import org.terasology.audio.AudioManager;
@@ -55,9 +54,6 @@ public class MusicDirectorImpl extends BaseComponentSystem implements MusicDirec
 
     @In
     private AudioManager audioManager;
-
-    @In
-    private AssetManager assetManager;
 
     private PlaylistEntry currentEntry;
     private StreamingSound currentSound;
@@ -116,7 +112,7 @@ public class MusicDirectorImpl extends BaseComponentSystem implements MusicDirec
         if (currentEntry == null || COMP.compare(nextEntry,  currentEntry) > 0) {
 
             String uri = nextEntry.getAssetUri();
-            StreamingSound sound = Assets.getMusic(uri);
+            StreamingSound sound = Assets.getMusic(uri).get();
 
             if (sound != null) {
                 if (currentSound != null) {

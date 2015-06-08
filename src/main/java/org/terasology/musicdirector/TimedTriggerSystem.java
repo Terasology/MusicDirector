@@ -19,7 +19,6 @@ package org.terasology.musicdirector;
 import java.math.RoundingMode;
 import java.util.Collection;
 
-import org.terasology.asset.AssetManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.entitySystem.entity.lifecycleEvents.BeforeDeactivateComponent;
 import org.terasology.entitySystem.entity.lifecycleEvents.OnActivatedComponent;
@@ -27,7 +26,6 @@ import org.terasology.entitySystem.event.ReceiveEvent;
 import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterSystem;
 import org.terasology.registry.CoreRegistry;
-import org.terasology.registry.In;
 import org.terasology.world.WorldProvider;
 import org.terasology.world.time.WorldTime;
 import org.terasology.world.time.WorldTimeEvent;
@@ -45,9 +43,6 @@ import com.google.common.math.LongMath;
 public class TimedTriggerSystem extends BaseComponentSystem {
 
     private final Collection<TimedMusicTriggerComponent> triggers = Sets.newLinkedHashSet();
-
-    @In
-    private AssetManager assetManager;
 
     private MusicDirector manager;
 
