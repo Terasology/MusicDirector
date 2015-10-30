@@ -17,6 +17,7 @@
 package org.terasology.musicdirector;
 
 import java.util.Comparator;
+import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
@@ -47,9 +48,7 @@ public class MusicDirectorImpl extends BaseComponentSystem implements MusicDirec
 
     private static final TriggerComparator COMP = new TriggerComparator();
 
-    // JAVA8: remove initial capacity and use the constructor that uses default cap
-    private final Queue<PlaylistEntry> playList = new PriorityQueue<>(11, COMP);
-
+    private final Queue<PlaylistEntry> playList = new PriorityQueue<>(COMP);
     private final Queue<PlaylistEntry> history = Lists.newLinkedList();
 
     @In
@@ -112,18 +111,18 @@ public class MusicDirectorImpl extends BaseComponentSystem implements MusicDirec
         if (currentEntry == null || COMP.compare(nextEntry,  currentEntry) > 0) {
 
             String uri = nextEntry.getAssetUri();
-            StreamingSound sound = Assets.getMusic(uri).get();
+            Optional<StreamingSound> optSound = Assets.getMusic(uri);
 
-            if (sound != null) {
+            if (optSound.isPresent()) {
                 if (currentSound != null) {
 //                    currentSound.stop();
                 }
 
-                currentSound = sound;
+                currentSound = optSound.get();
                 currentEntry = nextEntry;
 
                 logger.info("Starting to play '{}'", uri);
-                audioManager.playMusic(sound, new AudioEndListener() {
+                audioManager.playMusic(currentSound, new AudioEndListener() {
 
                     @Override
                     public void onAudioEnd() {
