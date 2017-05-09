@@ -16,15 +16,10 @@
 
 package org.terasology.musicdirector;
 
-import java.util.Comparator;
-import java.util.Optional;
-import java.util.PriorityQueue;
-import java.util.Queue;
-
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.utilities.Assets;
-import org.terasology.audio.AudioEndListener;
 import org.terasology.audio.AudioManager;
 import org.terasology.audio.StreamingSound;
 import org.terasology.entitySystem.systems.BaseComponentSystem;
@@ -32,9 +27,12 @@ import org.terasology.entitySystem.systems.RegisterSystem;
 import org.terasology.logic.console.commandSystem.annotations.Command;
 import org.terasology.registry.In;
 import org.terasology.registry.Share;
+import org.terasology.utilities.Assets;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
+import java.util.Comparator;
+import java.util.Optional;
+import java.util.PriorityQueue;
+import java.util.Queue;
 
 /**
  * Play different music assets that are enqueued
@@ -108,31 +106,27 @@ public class MusicDirectorImpl extends BaseComponentSystem implements MusicDirec
 
         PlaylistEntry nextEntry = playList.peek();
 
-        if (currentEntry == null || COMP.compare(nextEntry,  currentEntry) > 0) {
+        if (currentEntry == null || COMP.compare(nextEntry, currentEntry) > 0) {
 
             String uri = nextEntry.getAssetUri();
             Optional<StreamingSound> optSound = Assets.getMusic(uri);
 
             if (optSound.isPresent()) {
                 if (currentSound != null) {
-//                    currentSound.stop();
+                    //                    currentSound.stop();
                 }
 
                 currentSound = optSound.get();
                 currentEntry = nextEntry;
 
                 logger.info("Starting to play '{}'", uri);
-                audioManager.playMusic(currentSound, new AudioEndListener() {
-
-                    @Override
-                    public void onAudioEnd() {
-                        logger.info("Song '{}' ended", currentEntry.getAssetUri());
-                        playList.remove(currentEntry);    // remove head
-                        history.add(currentEntry);
-                        currentEntry = null;
-                        currentSound = null;
-                        checkTriggers();
-                    }
+                audioManager.playMusic(currentSound, interrupted -> {
+                    logger.info("Song '{}' ended", currentEntry.getAssetUri());
+                    playList.remove(currentEntry);    // remove head
+                    history.add(currentEntry);
+                    currentEntry = null;
+                    currentSound = null;
+                    checkTriggers();
                 });
             } else {
                 logger.warn("Asset {} could not be retrieved", uri);
