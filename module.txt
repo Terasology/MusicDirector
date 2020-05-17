@@ -1,9 +1,10 @@
 {
-    "id" : "MusicDirector",
-    "version" : "0.2.1-SNAPSHOT",
-    "author" : "msteiger",
-    "displayName" : "MusicDirector",
-    "description" : "A module that controls music assets from other modules",
-    "dependencies" : [],
-    "isServerSideOnly" : false
+    "id": "MusicDirector",
+    "version": "1.0.0",
+    "author": "msteiger",
+    "displayName": "MusicDirector",
+    "description": "A module that controls music assets from other modules",
+    "dependencies": [],
+    "isServerSideOnly": false,
+    "isLibrary": true
 }
