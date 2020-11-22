@@ -72,7 +72,7 @@ public class MusicDirectorImpl extends BaseComponentSystem implements MusicDirec
                 return;
             }
         } else {
-            logger.info("Enqueued {}", assetUri);
+            logger.debug("Enqueued {}", assetUri);
             playList.add(entry);
         }
 
@@ -84,7 +84,7 @@ public class MusicDirectorImpl extends BaseComponentSystem implements MusicDirec
         PlaylistEntry entry = find(assetUri);
         if (entry != null) {
             playList.remove(entry);
-            logger.info("Removed {}", entry.getAssetUri());
+            logger.debug("Removed {}", entry.getAssetUri());
         }
     }
 
