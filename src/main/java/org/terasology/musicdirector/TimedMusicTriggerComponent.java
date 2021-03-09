@@ -16,7 +16,7 @@
 
 package org.terasology.musicdirector;
 
-import org.terasology.entitySystem.Component;
+import org.terasology.engine.entitySystem.Component;
 
 /**
  * A music trigger that is based on a daily time interval.
