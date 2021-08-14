@@ -21,7 +21,7 @@ public final class TimedMusicTriggerComponent implements Component<TimedMusicTri
     }
 
     @Override
-    public void copy(TimedMusicTriggerComponent other) {
+    public void copyFrom(TimedMusicTriggerComponent other) {
         this.dailyStart = other.dailyStart;
         this.dailyEnd = other.dailyEnd;
         this.assetUri = other.assetUri;
