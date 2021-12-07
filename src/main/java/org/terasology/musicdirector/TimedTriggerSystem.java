@@ -22,13 +22,13 @@ import com.google.common.math.LongMath;
 import org.terasology.engine.entitySystem.entity.EntityRef;
 import org.terasology.engine.entitySystem.entity.lifecycleEvents.BeforeDeactivateComponent;
 import org.terasology.engine.entitySystem.entity.lifecycleEvents.OnActivatedComponent;
-import org.terasology.engine.entitySystem.event.ReceiveEvent;
 import org.terasology.engine.entitySystem.systems.BaseComponentSystem;
 import org.terasology.engine.entitySystem.systems.RegisterSystem;
 import org.terasology.engine.registry.CoreRegistry;
 import org.terasology.engine.world.WorldProvider;
 import org.terasology.engine.world.time.WorldTime;
 import org.terasology.engine.world.time.WorldTimeEvent;
+import org.terasology.gestalt.entitysystem.event.ReceiveEvent;
 
 import java.math.RoundingMode;
 import java.util.Collection;
